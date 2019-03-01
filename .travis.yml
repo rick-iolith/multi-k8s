@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t gordonbleu/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run gordonbleu/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t gordonbleu/multi-client ./client
+  - docker build -t gordonbleu/multi-nginx ./nginx
+  - docker build -t gordonbleu/multi-server ./server
+  - docker build -t gordonbleu/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push gordonbleu/multi-client
+  - docker push gordonbleu/multi-nginx
+  - docker push gordonbleu/multi-server
+  - docker push gordonbleu/multi-worker
